@@ -2,8 +2,6 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
-from results import compute_forward_mapping
 from solution import Solution
 
 
@@ -14,8 +12,8 @@ DISPARITY_RANGE = 20
 ##########################################################
 # Don't forget to fill in your IDs!!!
 # students' IDs:
-ID1 = '123456789'
-ID2 = '987654321'
+ID1 = '308491240'
+ID2 = '205657620'
 ##########################################################
 
 
@@ -33,7 +31,7 @@ def forward_map(left_image, labels):
     for row in range(left_image.shape[0]):
         cols = range(left_image.shape[1])
         mapped[row,
-               np.clip(cols - labels[row, ...], 0, left_image.shape[1] - 1),
+               np.clip(cols + labels[row, ...], 0, left_image.shape[1] - 1),
                ...] = left_image[row, cols, ...]
     return mapped
 
@@ -50,9 +48,6 @@ def load_data(is_your_data=False):
 
 
 def main():
-    ###########################################################################
-    ########################### YOUR IMAGE PLAYGROUND #########################
-    ###########################################################################
     COST1 = 0.5           # YOU MAY CHANGE THIS
     COST2 = 3.0           # YOU MAY CHANGE THIS
     WIN_SIZE = 3
@@ -81,9 +76,21 @@ def main():
     plt.imshow(label_map)
     plt.colorbar()
     plt.title('Naive Depth')
-    plt.show()
 
-    compute_forward_mapping(left_image, right_image, label_map, DISPARITY_RANGE, ssdd)
+    # Compute forward map of the left image to the right image for the naive depth estimation
+    mapped_image_naive = forward_map(left_image, labels=label_map)
+    # plot left image, forward map image and right image
+    plt.figure()
+    plt.subplot(1, 3, 1)
+    plt.imshow(left_image)
+    plt.title('Source Image')
+    plt.subplot(1, 3, 2)
+    plt.imshow(mapped_image_naive)
+    plt.title('Naive Forward map')
+    plt.subplot(1, 3, 3)
+    plt.imshow(right_image)
+    plt.title('Right Image')
+
     # Smooth disparity image - Dynamic Programming
     tt = tic()
     label_smooth_dp = solution.dp_labeling(ssdd, COST1, COST2)
@@ -98,7 +105,6 @@ def main():
     plt.imshow(label_smooth_dp)
     plt.colorbar()
     plt.title('Smooth Depth - DP')
-    plt.show()
 
     # Compute forward map of the left image to the right image.
     mapped_image_smooth_dp = forward_map(left_image, labels=label_smooth_dp)
@@ -113,7 +119,6 @@ def main():
     plt.subplot(1, 3, 3)
     plt.imshow(right_image)
     plt.title('Right Image')
-    plt.show()
 
     # Generate a dictionary which maps each direction to a label map:
     tt = tic()
@@ -127,13 +132,13 @@ def main():
         plt.subplot(3, 3, i)
         if i < 5:
             plt.imshow(direction_to_vote[i])
-            plt.title(f'Direction {i}')
+            plt.title(f'Direction {i}', fontsize='10')
         elif i == 5:
             plt.imshow(left_image)
-            plt.title(f'Left Image')
+            plt.title(f'Left Image', fontsize='10')
         else:
             plt.imshow(direction_to_vote[i - 1])
-            plt.title(f'Direction {i - 1}')
+            plt.title(f'Direction {i - 1}', fontsize='10')
 
     # Smooth disparity image - Semi-Global Mapping
     tt = tic()
@@ -163,9 +168,16 @@ def main():
     plt.imshow(right_image)
     plt.title('Right Image')
 
-
+    ###########################################################################
+    ########################### YOUR IMAGE PLAYGROUND #########################
+    ###########################################################################
+    COST1 = 0.5           # YOU MAY CHANGE THIS
+    COST2 = 3.0           # YOU MAY CHANGE THIS
+    WIN_SIZE = 3
+    DISPARITY_RANGE = 30
 
     your_left_image, your_right_image = load_data(is_your_data=True)
+
     solution = Solution()
     # Compute Sum-Square-Diff distance
     tt = tic()
@@ -195,6 +207,7 @@ def main():
             plt.imshow(your_direction_to_vote[i - 1])
             plt.title(f'Direction {i - 1}')
 
+
     # Smooth disparity image - Semi-Global Mapping
     tt = tic()
     your_label_smooth_sgm = solution.sgm_labeling(your_ssdd, COST1, COST2)
@@ -207,6 +220,7 @@ def main():
     plt.imshow(your_label_smooth_sgm)
     plt.colorbar()
     plt.title('Your Smooth Depth - SGM')
+
 
     # Plot the forward map based on the Semi-Global Mapping result:
     your_mapped_image_smooth_sgm = forward_map(your_left_image,
